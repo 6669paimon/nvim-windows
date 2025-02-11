@@ -22,7 +22,7 @@ keymap.set("x", "p", '"_dP')
 
 -- Delete a word backwards
 -- keymap.set("n", "db", 'vb"_d')
-keymap.set("n", "db", 'vbd')
+keymap.set("n", "db", "vbd")
 
 -- Select all
 -- keymap.set("n", "<c-a>", "ggVG")
@@ -60,12 +60,11 @@ keymap.set("n", "}", "}zz")
 
 -- find/replace for the word under the cursor
 keymap.set("n", "<leader>sr", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
-keymap.set("n", "<leader>ss", '*N', opts, { desc = "Search current word" })
+keymap.set("n", "<leader>ss", "*N", opts, { desc = "Search current word" })
 
 -- Terminal
 keymap.set("t", "<esc>", "<C-\\><C-n>", opts)
 -- keymap.set("n", "<C-t>", "<CMD>tabnew | term<CR>", opts)
-
 
 -- Move Firts&End line
 keymap.set("", "H", "^")
@@ -113,135 +112,156 @@ keymap.set("", "<Down>", "<nop>", opts)
 keymap.set("", "<Left>", "<nop>", opts)
 keymap.set("", "<Right>", "<nop>", opts)
 
-
 --  Buffer
 keymap.set("n", "[b", "<CMD>bp<CR>", opts, { desc = "move previous buffer" })
 keymap.set("n", "]b", "<CMD>bn<CR>", opts, { desc = "move next buffer" })
 keymap.set("n", "<leader><leader>", "<C-^>", { noremap = true }, { desc = "Switch to latest buffer" })
 keymap.set("n", "<leader>dd", "<CMD>confirm bd<CR>", opts, { desc = "Close buffer" })
 vim.api.nvim_set_keymap("n", "<leader>da", "", {
-  noremap = true,
-  silent = true,
-  callback = function()
-    local current_buf = vim.api.nvim_get_current_buf()
-    local all_buf = vim.api.nvim_list_bufs()
-    local closed_count = 0
+	noremap = true,
+	silent = true,
+	callback = function()
+		local current_buf = vim.api.nvim_get_current_buf()
+		local all_buf = vim.api.nvim_list_bufs()
+		local closed_count = 0
 
-    local function is_regular_file(buf)
-      -- Check buftype
-      local buftype = vim.api.nvim_buf_get_option(buf, 'buftype')
-      if buftype ~= '' then
-        return false
-      end
+		local function is_regular_file(buf)
+			-- Check buftype
+			local buftype = vim.api.nvim_buf_get_option(buf, "buftype")
+			if buftype ~= "" then
+				return false
+			end
 
-      -- Check filename
-      local bufname = vim.api.nvim_buf_get_name(buf)
-      if bufname == '' then
-        return false
-      end
+			-- Check filename
+			local bufname = vim.api.nvim_buf_get_name(buf)
+			if bufname == "" then
+				return false
+			end
 
-      -- Check if it's a normal file path
-      local stat = vim.loop.fs_stat(bufname)
-      if not stat or not stat.type == 'file' then
-        return false
-      end
+			-- Check if it's a normal file path
+			local stat = vim.loop.fs_stat(bufname)
+			if not stat or not stat.type == "file" then
+				return false
+			end
 
-      return true
-    end
+			return true
+		end
 
-    for _, buf in ipairs(all_buf) do
-      if buf ~= current_buf and vim.api.nvim_buf_is_valid(buf) and is_regular_file(buf) then
-        local modified = vim.api.nvim_buf_get_option(buf, 'modified')
-        if modified then
-          local buf_name = vim.api.nvim_buf_get_name(buf)
-          local choice = vim.fn.confirm('Save changes to "' .. buf_name .. '"?', "&Yes\n&No\n&Cancel", 1)
-          if choice == 1 then -- Yes
-            vim.api.nvim_buf_call(buf, function() vim.cmd('write') end)
-            vim.api.nvim_buf_delete(buf, {})
-            closed_count = closed_count + 1
-          elseif choice == 2 then -- No
-            vim.api.nvim_buf_delete(buf, { force = true })
-            closed_count = closed_count + 1
-          elseif choice == 3 then -- Cancel
-            return
-          end
-        else
-          vim.api.nvim_buf_delete(buf, {})
-          closed_count = closed_count + 1
-        end
-      end
-    end
+		for _, buf in ipairs(all_buf) do
+			if buf ~= current_buf and vim.api.nvim_buf_is_valid(buf) and is_regular_file(buf) then
+				local modified = vim.api.nvim_buf_get_option(buf, "modified")
+				if modified then
+					local buf_name = vim.api.nvim_buf_get_name(buf)
+					local choice = vim.fn.confirm('Save changes to "' .. buf_name .. '"?', "&Yes\n&No\n&Cancel", 1)
+					if choice == 1 then -- Yes
+						vim.api.nvim_buf_call(buf, function()
+							vim.cmd("write")
+						end)
+						vim.api.nvim_buf_delete(buf, {})
+						closed_count = closed_count + 1
+					elseif choice == 2 then -- No
+						vim.api.nvim_buf_delete(buf, { force = true })
+						closed_count = closed_count + 1
+					elseif choice == 3 then -- Cancel
+						return
+					end
+				else
+					vim.api.nvim_buf_delete(buf, {})
+					closed_count = closed_count + 1
+				end
+			end
+		end
 
-    -- Show notification
-    vim.defer_fn(function()
-      local msg = string.format("Closed buffer(s): %d", closed_count)
-      vim.notify(msg, vim.log.levels.INFO, { title = "Buffer Cleanup", timeout = 3000 })
-    end, 100)
-  end,
-  desc = "Close all regular file buffers except the current buffer"
+		-- Show notification
+		vim.defer_fn(function()
+			local msg = string.format("Closed buffer(s): %d", closed_count)
+			vim.notify(msg, vim.log.levels.INFO, { title = "Buffer Cleanup", timeout = 3000 })
+		end, 100)
+	end,
+	desc = "Close all regular file buffers except the current buffer",
 })
 
 -- Quick compile and run
 -- python
 vim.api.nvim_create_autocmd("FileType", {
-  pattern = "python",
-  callback = function()
-    vim.api.nvim_buf_set_keymap(0, 'n', '<leader>cc', '',
-      {
-        noremap = true,
-        silent = true,
-        callback = function()
-          local venv_python = vim.fn.getcwd() .. "/venv/bin/python"
-          local python_cmd = vim.fn.filereadable(venv_python) == 1 and venv_python or "python"
-          local file_path = vim.fn.expand("%:p")
-          vim.cmd("12split | terminal " .. python_cmd .. " " .. file_path)
-        end
-      })
-  end
+	pattern = "python",
+	callback = function()
+		vim.api.nvim_buf_set_keymap(0, "n", "<leader>cc", "", {
+			noremap = true,
+			silent = true,
+			callback = function()
+				local venv_python = vim.fn.getcwd() .. "/venv/bin/python"
+				local python_cmd = vim.fn.filereadable(venv_python) == 1 and venv_python or "python"
+				local file_path = vim.fn.expand("%:p")
+				vim.cmd("12split | terminal " .. python_cmd .. " " .. file_path)
+			end,
+		})
+	end,
 })
-
 
 -- C/C++ (LLVM)
 vim.api.nvim_create_autocmd("FileType", {
-  pattern = "cpp",
-  callback = function()
-    vim.api.nvim_set_keymap('n', '<F9>', '<cmd>!clang++ % -o %:r.exe<cr>', { noremap = true, silent = true })
-    vim.api.nvim_set_keymap('n', '<F10>', '<cmd>12split<bar>terminal %:r.exe<cr>', { noremap = true, silent = true })
-    vim.api.nvim_set_keymap('n', '<leader>cc',
-      '<cmd>w<cr><cmd>!clang++ % -o %:r.exe<cr><cmd>12split<bar>terminal %:r.exe<cr>',
-      { noremap = true, silent = true })
-  end
+	pattern = "cpp",
+	callback = function()
+		vim.api.nvim_set_keymap("n", "<F9>", "<cmd>!clang++ % -o %:r.exe<cr>", { noremap = true, silent = true })
+		vim.api.nvim_set_keymap(
+			"n",
+			"<F10>",
+			"<cmd>12split<bar>terminal %:r.exe<cr>",
+			{ noremap = true, silent = true }
+		)
+		vim.api.nvim_set_keymap(
+			"n",
+			"<leader>cc",
+			"<cmd>w<cr><cmd>!clang++ % -o %:r.exe<cr><cmd>12split<bar>terminal %:r.exe<cr>",
+			{ noremap = true, silent = true }
+		)
+	end,
 })
 vim.api.nvim_create_autocmd("FileType", {
-  pattern = "c",
-  callback = function()
-    vim.api.nvim_set_keymap('n', '<F9>', '<cmd>!clang % -o %:r.exe<cr>', { noremap = true, silent = true })
-    vim.api.nvim_set_keymap('n', '<F10>', '<cmd>12split<bar>terminal %:r.exe<cr>', { noremap = true, silent = true })
-    vim.api.nvim_set_keymap('n', '<leader>cc',
-      '<cmd>w<cr><cmd>!clang % -o %:r.exe<cr><cmd>12split<bar>terminal %:r.exe<cr>',
-      { noremap = true, silent = true })
-  end
+	pattern = "c",
+	callback = function()
+		vim.api.nvim_set_keymap("n", "<F9>", "<cmd>!clang % -o %:r.exe<cr>", { noremap = true, silent = true })
+		vim.api.nvim_set_keymap(
+			"n",
+			"<F10>",
+			"<cmd>12split<bar>terminal %:r.exe<cr>",
+			{ noremap = true, silent = true }
+		)
+		vim.api.nvim_set_keymap(
+			"n",
+			"<leader>cc",
+			"<cmd>w<cr><cmd>!clang % -o %:r.exe<cr><cmd>12split<bar>terminal %:r.exe<cr>",
+			{ noremap = true, silent = true }
+		)
+	end,
 })
 
 -- C/C++ (MinGW)
 -- vim.api.nvim_create_autocmd("FileType", {
---   pattern = "c",
---   callback = function()
---     -- ใช้ gcc แทน g++
---     vim.api.nvim_set_keymap('n', '<F9>', '<cmd>!gcc -std=c11 % -o %:r<cr>', { noremap = true, silent = true })
---     vim.api.nvim_set_keymap('n', '<F10>', '<cmd>12split<bar>terminal %:r<cr>', { noremap = true, silent = true })
---     vim.api.nvim_set_keymap('n', '<leader>cc',
---       '<cmd>w<cr><cmd>!gcc -std=c11 % -o %:r<cr><cmd>12split<bar>terminal %:r<cr>',
---       { noremap = true, silent = true })
---   end
+-- 	pattern = "c",
+-- 	callback = function()
+-- 		-- ใช้ gcc แทน g++
+-- 		vim.api.nvim_set_keymap("n", "<F9>", "<cmd>!gcc % -o %:r<cr>", { noremap = true, silent = true })
+-- 		vim.api.nvim_set_keymap("n", "<F10>", "<cmd>12split<bar>terminal %:r<cr>", { noremap = true, silent = true })
+-- 		vim.api.nvim_set_keymap(
+-- 			"n",
+-- 			"<leader>cc",
+-- 			"<cmd>w<cr><cmd>!gcc % -o %:r<cr><cmd>12split<bar>terminal %:r<cr>",
+-- 			{ noremap = true, silent = true }
+-- 		)
+-- 	end,
 -- })
 -- vim.api.nvim_create_autocmd("FileType", {
---   pattern = "cpp",
---   callback = function()
---     vim.api.nvim_set_keymap('n', '<F9>', '<cmd>!g++ -std=c++17 % -o %:r<cr>', { noremap = true, silent = true })
---     vim.api.nvim_set_keymap('n', '<F10>', '<cmd>12split<bar>terminal %:r<cr>', { noremap = true, silent = true })
---     vim.api.nvim_set_keymap('n', '<leader>cc',
---       '<cmd>w<cr><cmd>!g++ -std=c++17 % -o %:r<cr><cmd>12split<bar>terminal %:r<cr>',
---       { noremap = true, silent = true })
---   end
+-- 	pattern = "cpp",
+-- 	callback = function()
+-- 		vim.api.nvim_set_keymap("n", "<F9>", "<cmd>!g++ % -o %:r<cr>", { noremap = true, silent = true })
+-- 		vim.api.nvim_set_keymap("n", "<F10>", "<cmd>12split<bar>terminal %:r<cr>", { noremap = true, silent = true })
+-- 		vim.api.nvim_set_keymap(
+-- 			"n",
+-- 			"<leader>cc",
+-- 			"<cmd>w<cr><cmd>!g++ % -o %:r<cr><cmd>12split<bar>terminal %:r<cr>",
+-- 			{ noremap = true, silent = true }
+-- 		)
+-- 	end,
 -- })

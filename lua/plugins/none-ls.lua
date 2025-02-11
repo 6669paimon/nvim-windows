@@ -8,7 +8,7 @@ return {
 			debug = false,
 			sources = {
 				-- Lua
-				formatting.stylua,
+				-- formatting.stylua,
 				-- Python
 				formatting.black.with({
 					extra_args = { "--fast" },

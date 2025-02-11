@@ -20,7 +20,7 @@ return {
     },
     -- signcolumn = false,
     on_attach = function(buffer)
-      vim.opt_local.statuscolumn = "%=%{v:relnum == 0 ? v:lnum : v:relnum} %s"
+      -- vim.opt_local.statuscolumn = "%=%{v:relnum == 0 ? v:lnum : v:relnum} %s"
       local gs = package.loaded.gitsigns
 
       local function map(mode, l, r, desc)

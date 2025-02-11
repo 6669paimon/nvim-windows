@@ -14,6 +14,9 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   end,
 })
 
+-- set diagnostic and gitsign to right linenumber
+vim.opt_local.statuscolumn = "%=%{v:relnum == 0 ? v:lnum : v:relnum} %s"
+
 -- Turn off paste mode when leaving insert
 vim.api.nvim_create_autocmd("InsertLeave", {
   pattern = "*",
