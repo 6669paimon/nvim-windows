@@ -6,12 +6,12 @@
 --   augroup END
 -- ]]
 vim.api.nvim_create_autocmd("TextYankPost", {
-  callback = function()
-    vim.highlight.on_yank({
-      higroup = "IncSearch",
-      timeout = 200,
-    })
-  end,
+	callback = function()
+		vim.highlight.on_yank({
+			higroup = "IncSearch",
+			timeout = 200,
+		})
+	end,
 })
 
 -- set diagnostic and gitsign to right linenumber
@@ -19,9 +19,19 @@ vim.opt_local.statuscolumn = "%=%{v:relnum == 0 ? v:lnum : v:relnum} %s"
 
 -- Turn off paste mode when leaving insert
 vim.api.nvim_create_autocmd("InsertLeave", {
-  pattern = "*",
-  command = "set nopaste",
+	pattern = "*",
+	command = "set nopaste",
 })
+
+-- Trim whitespace endline
+-- vim.api.nvim_create_autocmd("BufWritePre", {
+-- 	pattern = "*",
+-- 	callback = function()
+-- 		local save_cursor = vim.api.nvim_win_get_cursor(0)
+-- 		vim.cmd([[%s/\s\+$//e]])
+-- 		vim.api.nvim_win_set_cursor(0, save_cursor)
+-- 	end,
+-- })
 
 -- relative number toggle insert
 -- vim.cmd([[

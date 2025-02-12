@@ -14,7 +14,7 @@ return {
 					extra_args = { "--fast" },
 				}),
 				-- Javascript/Typscript/HTML/CSS/JSON
-				formatting.prettier.with({
+				formatting.prettierd.with({
 					prefer_local = "node_modules/.bin",
 				}),
 				-- C/C++
